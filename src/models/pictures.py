@@ -14,17 +14,17 @@ class Picture(Base):
     path = sa.Column(sa.String, comment="Путь к картинке в хранилище")
 
     users_liked = relationship(
-        "Like",
+        "User",
         secondary=Like.__table__,
         back_populates="liked_pictures",
     )
     collections = relationship(
-        "CollectionToPictureEnrollment",
+        "Collection",
         secondary=CollectionToPictureEnrollment.__table__,
         back_populates="pictures",
     )
     tags = relationship(
-        "TagToPictureEnrollment",
+        "Tag",
         secondary=TagToPictureEnrollment.__table__,
         back_populates="pictures",
     )
