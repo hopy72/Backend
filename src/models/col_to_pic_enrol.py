@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+import datetime
 from dependencies.db import Base
 
 
@@ -7,4 +8,5 @@ class CollectionToPictureEnrollment(Base):
 
     collection_id = sa.Column(sa.Integer, sa.ForeignKey("collections.id"), primary_key=True)
     picture_id = sa.Column(sa.Integer, sa.ForeignKey("pictures.id"), primary_key=True)
+    add_date = sa.Column(sa.DateTime, comment="Дата добавления в коллекцию", default=datetime.datetime.utcnow)
 

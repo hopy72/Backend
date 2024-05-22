@@ -8,6 +8,7 @@ from models.pictures import Picture
 from models.users import User
 from models.collections import Collection
 from models.tags import Tag
+from models.col_to_pic_enrol import CollectionToPictureEnrollment
 
 
 router = APIRouter(prefix="/collections", tags=["collections"])
@@ -33,12 +34,15 @@ async def create_collection(
     return CollectionSchema.from_orm(new_collection_db)
 
 
-@router.get("/{user_id}", response_model=List[CollectionSchema])
+@router.get("/{username}", response_model=List[CollectionSchema])
 async def get_user_collections(
-        user_id: int,
+        username: str,
         db: Session = Depends(get_db),
 ):
-    collections = db.query(Collection).filter(Collection.author_id == user_id).all()
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользоваетль не найден")
+    collections = db.query(Collection).filter(Collection.author_id == user.id).all()  # noqa
     return [CollectionSchema.from_orm(col) for col in collections]
 
 
@@ -49,9 +53,11 @@ async def update_collection(
 ):
     old_collection = db.query(Collection).filter(Collection.id == new_collection.id).first()
     if not old_collection:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
-    old_collection.name = new_collection.name
-    old_collection.pictures = new_collection.pictures
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Коллекция не найдена")
+    if new_collection.name:
+        old_collection.name = new_collection.name
+    if new_collection.pictures:
+        old_collection.pictures = db.query(Picture).filter(Picture.id.in_(new_collection.pictures)).all()
     db.commit()
     db.refresh(old_collection)
     return CollectionSchema.from_orm(old_collection)

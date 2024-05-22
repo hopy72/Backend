@@ -11,7 +11,7 @@ class Picture(Base):
     __tablename__ = "pictures"
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True, comment="Идентификатор картинки", unique=True)
-    path = sa.Column(sa.String, comment="Путь к картинке в хранилище")
+    path = sa.Column(sa.String, comment="Путь к картинке в хранилище", unique=True)
 
     users_liked = relationship(
         "User",
