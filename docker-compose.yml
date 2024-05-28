@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./vladProj/src
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:root@backdb:5432/example
+    depends_on:
+      - backdb
+    networks:
+      - app-network
+
+  auth:
+    build:
+      context: ./artemProj/src
+      dockerfile: Dockerfile
+    container_name: auth
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:root@authdb:5432/auth
+    depends_on:
+      - authdb
+    networks:
+      - app-network
+
+  recommendations:
+    build:
+      context: ./RecSystem
+      dockerfile: Dockerfile
+    container_name: recommendations
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:root@backdb:5432/example
+    depends_on:
+      - backdb
+    networks:
+      - app-network
+
+  backdb:
+    image: postgres:13
+    container_name: backdb
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: example
+    volumes:
+      - example_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  authdb:
+    image: postgres:13
+    container_name: authdb
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: auth
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - auth
+      - recommendations
+    networks:
+      - app-network
+
+volumes:
+  example_data:
+  auth_data:
+
+networks:
+  app-network:
+    driver: bridge
