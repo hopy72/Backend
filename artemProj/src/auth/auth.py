@@ -100,8 +100,13 @@ async def login_for_access_token(form_data: OAuth2EmailRequestForm = Depends()):
     refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     refresh_token = create_refresh_token(
         data={"sub": user.email}, expires_delta=refresh_token_expires)
-    return {"access_token": access_token, "token_type": "bearer",
-            "refresh_token": refresh_token, "id": user.id, "email": user.email}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "refresh_token": refresh_token,
+        "id": user.id,
+        "email": user.email
+    }
 
 
 @auth.post("/token/refresh", response_model=Token)
@@ -154,10 +159,8 @@ async def register_user(user: User):
     )
 
     response_body = {
-        "user": {
-            "email": new_user.email,
-            "id": added_user.id,
-        },
+        "email": new_user.email,
+        "id": added_user.id,
         "access_token": access_token,
         "token_type": "bearer",
         "refresh_token": refresh_token
