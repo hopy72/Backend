@@ -18,3 +18,13 @@ def get_db():
 
 
 Base = declarative_base()
+def init_db():
+    # Импортируем модели здесь, чтобы избежать циклического импорта
+    from models.pictures import Picture
+    from models.users import User
+    from models.collections import Collection
+    from models.tags import Tag
+    from models.col_to_pic_enrol import CollectionToPictureEnrollment
+    from models.likes import Like
+    from models.tag_to_pic_enrol import TagToPictureEnrollment
+    Base.metadata.create_all(bind=engine)
