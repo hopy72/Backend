@@ -29,6 +29,9 @@ class UserInDB(Base):
     refresh_token = Column(String, nullable=True)
 
 
+Base.metadata.create_all(bind=engine)
+
+
 def get_user_by_email(db_session, email):
     return db_session.query(UserInDB).filter(UserInDB.email == email).first()
 
