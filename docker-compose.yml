@@ -8,7 +8,7 @@ services:
     container_name: backend
     restart: always
     environment:
-      - DATABASE_URL=postgresql://postgres:root@backdb:5432/example
+      - DATABASE_URL=postgresql://postgres:root@backdb:5432/backdb
     depends_on:
       - backdb
     networks:
@@ -34,7 +34,7 @@ services:
     container_name: recommendations
     restart: always
     environment:
-      - DATABASE_URL=postgresql://postgres:root@backdb:5432/example
+      - DATABASE_URL=postgresql://postgres:root@backdb:5432/backdb
     depends_on:
       - backdb
     networks:
@@ -47,9 +47,9 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: example
+      POSTGRES_DB: backdb
     volumes:
-      - example_data:/var/lib/postgresql/data
+      - backdb_data:/var/lib/postgresql/data
     networks:
       - app-network
 
@@ -81,7 +81,7 @@ services:
       - app-network
 
 volumes:
-  example_data:
+  backdb_data:
   auth_data:
 
 networks:

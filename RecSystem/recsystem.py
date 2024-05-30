@@ -10,9 +10,11 @@ from database.collections import Collection
 from database.tags import Tag
 from database.likes import Like
 from database.db import get_db
+from database.db import init_db
 import uvicorn
 import random
 
+init_db()
 
 # Функция для получения рекомендованных постов
 def get_recommendations(user_id, num_recommendations, db):
@@ -96,6 +98,4 @@ async def get_recommendations_endpoint(user_id: int, num_recommendations: int, d
     if not recommendations:
         raise HTTPException(status_code=404, detail="Recommendations not found")
     return {"recommendations": recommendations}
-
-
 # uvicorn.run(app)
