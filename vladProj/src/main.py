@@ -1,8 +1,10 @@
 import uvicorn
 from fastapi import FastAPI
 from routers import user_router, collections_router, pictures_router, tags_router
+from dependencies.db import init_db
 
 app = FastAPI()
+init_db()
 app.include_router(user_router)
 app.include_router(collections_router)
 app.include_router(pictures_router)
