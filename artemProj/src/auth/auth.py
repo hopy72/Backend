@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
@@ -180,3 +180,12 @@ async def register_user(user: User):
     }
 
     return JSONResponse(content=response_body)
+
+
+@auth.get("/validate")
+async def validate_token_endpoint(token: str = Depends(oauth2_scheme)):
+    try:
+        current_user = await get_current_user(token)
+        return {"message": "Token is valid"}
+    except HTTPException as e:
+        raise e
