@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
- # DATABASE_URL = "postgresql+psycopg2://postgres:password@localhost:5433/auth"
+# DATABASE_URL = "postgresql+psycopg2://postgres:password@localhost:5433/auth"
 
 db_name = 'auth'
 db_user = 'postgres'
@@ -10,7 +10,7 @@ db_pass = 'root'
 db_host = 'authdb'
 db_port = '5432'
 
-# Connecto to the database
+# Connect to the database
 db_string = 'postgresql+psycopg2://{}:{}@{}:{}/{}'.format(db_user, db_pass, db_host, db_port, db_name)
 
 engine = create_engine(db_string)
@@ -23,26 +23,19 @@ class UserInDB(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True, nullable=False)
-    email = Column(String, unique=True, nullable=True)
-    full_name = Column(String, nullable=True)
+    email = Column(String, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     access_token = Column(String, nullable=True)
     refresh_token = Column(String, nullable=True)
 
 
-Base.metadata.create_all(bind=engine)
+def get_user_by_email(db_session, email):
+    return db_session.query(UserInDB).filter(UserInDB.email == email).first()
 
 
-def get_user_by_username(db_session, username):
-    return db_session.query(UserInDB).filter(UserInDB.username == username).first()
-
-
-def add_user(db_session, username, email, full_name, hashed_password, access_token, refresh_token):
+def add_user(db_session, email, hashed_password, access_token, refresh_token):
     new_user = UserInDB(
-        username=username,
         email=email,
-        full_name=full_name,
         hashed_password=hashed_password,
         access_token=access_token,
         refresh_token=refresh_token
