@@ -175,5 +175,3 @@ def get_top_pictures(user_id: int, db: Session = Depends(get_db)):
 
 
 init_db()
-
-uvicorn.run(app)
