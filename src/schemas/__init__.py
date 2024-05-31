@@ -32,7 +32,7 @@ class UserSchema(BaseModel):
         from_attributes = True
 
 
-class LikeSchema(BaseModel):
+class LikeInSchema(BaseModel):
     user_id: int
     picture_id: int
 
@@ -45,6 +45,23 @@ class LikeSchema(BaseModel):
         }
 
         from_attributes = True
+
+
+class LikeSchema(BaseModel):
+    user_id: int
+    picture_id: int
+    is_liked: bool
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "user_id": 123,
+                "picture_id": 321,
+                "is_liked": True,
+            }
+        }
+
+        from_attributes = False
 
 
 class TagInSchema(BaseModel):
@@ -182,6 +199,21 @@ class CollectionUpdateSchema(BaseModel):
             "example": {
                 "id": 123,
                 "name": "Best memes 2024",
+                "pictures": [1, 2, 3],
+            }
+        }
+
+        from_attributes = True
+
+
+class CollectionAndPicsSchema(BaseModel):
+    id: int
+    pictures: List[int]
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "id": 123,
                 "pictures": [1, 2, 3],
             }
         }

@@ -19,6 +19,10 @@ async def create_tag(
         new_tag: TagInSchema,
         db: Session = Depends(get_db),
 ):
+    tag = db.query(Tag).filter(Tag.name == new_tag.name).first()
+    if tag:
+        raise HTTPException(status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
+                            detail="Тэг с таким именем уже существует")
     new_tag_db = Tag(
         name=new_tag.name
     )
