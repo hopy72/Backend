@@ -15,7 +15,9 @@ from database.tag_to_pic_enrol import TagToPictureEnrollment
 from database.db import get_db
 from database.db import init_db
 from pydantic import BaseModel
+import boto3
 import uvicorn
+import random
 import datetime
 import sqlalchemy as sa
 
@@ -48,7 +50,7 @@ def get_recommendations(user_id, num_recommendations, db):
     # Собираем все теги пользователя в один список
     user_tags = liked_picture_tags + collection_picture_tags
     # Получаем случайные 1000 картинок
-    random_pictures = db.query(Picture).order_by(func.random()).limit(1000).all()
+    random_pictures = db.query(Picture).order_by(func.random()).limit(100).all()
 
     # Собираем все теги из базы данных
     all_tags = []
@@ -59,6 +61,9 @@ def get_recommendations(user_id, num_recommendations, db):
     # Создаем TF-IDF векторизатор и вычисляем TF-IDF для тегов
     tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix = tfidf_vectorizer.fit_transform(all_tags)
+
+    if not user_tags:
+        return random_pictures[:num_recommendations]
 
     # Преобразуем теги пользователя в TF-IDF представление
     user_tfidf = tfidf_vectorizer.transform(user_tags)
@@ -81,14 +86,16 @@ def get_recommendations(user_id, num_recommendations, db):
 
 
     recommended_posts = [random_pictures[index] for index in recommended_indices]
-
+    returned_random_pictures = [pic for pic in random_pictures if pic not in recommended_posts and pic not in liked_pictures]
+    num_recommendations_half = num_recommendations // 2
+    returned_posts = recommended_posts[:num_recommendations_half] + returned_random_pictures[:(num_recommendations - num_recommendations_half)]
     db.close()
-    return recommended_posts[:num_recommendations]
+    return returned_posts
 
 
 # Создание экземпляра FastAPI
 app = FastAPI()
-
+init_db()
 class PictureResponse(BaseModel):
     id: int
     path: str
@@ -173,5 +180,100 @@ def get_top_pictures(user_id: int, db: Session = Depends(get_db)):
     
     return response
 
+s3_client = boto3.client(
+    's3',
+    endpoint_url='https://storage.yandexcloud.net',
+    aws_access_key_id='YCAJEwiniJk6C_9N9bJqI_v-c',
+    aws_secret_access_key='YCO8KK0Bn5Sf1_blUoVJh9pesRi9O2rDHzbziphU'
+)
 
-init_db()
+bucket_name = 'memerest-pictures'
+
+def get_s3_object_keys(bucket_name):
+    # Получение списка всех объектов в указанном бакете
+    response = s3_client.list_objects_v2(Bucket=bucket_name)
+    keys = [content['Key'] for content in response.get('Contents', [])]
+    return keys
+
+def clear_database(db: Session):
+    # Очистка всех таблиц
+    db.query(Like).delete()
+    db.query(TagToPictureEnrollment).delete()
+    db.query(CollectionToPictureEnrollment).delete()
+    db.query(Collection).delete()
+    db.query(Picture).delete()
+    db.query(Tag).delete()
+    db.query(User).delete()
+    db.commit()
+
+def populate_test_data(db: Session):
+    clear_database(db)
+    # Создание пользователей
+    users = []
+    for i in range(1, 15):
+        user = User(username=f"user{i}")
+        users.append(user)
+    db.add_all(users)
+    db.commit()
+
+    # Создание тэгов
+    tags = []
+    for i in range(1, 51):
+        tag = Tag(name=f"tag{i}")
+        tags.append(tag)
+    db.add_all(tags)
+    db.commit()
+
+    # Получение списка объектов из Yandex S3
+    object_keys = get_s3_object_keys(bucket_name)
+
+    # Создание картинок
+    pictures = []
+    for key in random.sample(object_keys, 1000):
+        picture = Picture(path=f"https://storage.yandexcloud.net/{bucket_name}/{key}")
+        pictures.append(picture)
+    db.add_all(pictures)
+    db.commit()
+
+    # Добавление тэгов к картинкам
+    for picture in pictures:
+        picture_tags = random.sample(tags, 4)
+        for tag in picture_tags:
+            tag_to_pic = TagToPictureEnrollment(tag_id=tag.id, picture_id=picture.id)
+            db.add(tag_to_pic)
+    db.commit()
+
+    # Создание лайков
+    likes = set()
+    for _ in range(300):
+        while True:
+            user = random.choice(users)
+            picture = random.choice(pictures)
+            if (user.id, picture.id) not in likes:
+                likes.add((user.id, picture.id))
+                like = Like(user_id=user.id, picture_id=picture.id, like_date=datetime.datetime.utcnow())
+                db.add(like)
+                break
+    db.commit()
+
+    # Создание коллекций и добавление в них картинок
+    collection1 = Collection(name="Collection1", author_id=users[0].id)
+    collection2 = Collection(name="Collection2", author_id=users[1].id)
+    db.add_all([collection1, collection2])
+    db.commit()
+
+    # Добавление картинок в коллекции
+    for collection in [collection1, collection2]:
+        collection_pictures = random.sample(pictures, 2)
+        for picture in collection_pictures:
+            col_to_pic = CollectionToPictureEnrollment(collection_id=collection.id, picture_id=picture.id, add_date=datetime.datetime.utcnow())
+            db.add(col_to_pic)
+    db.commit()
+
+# Функция для вызова заполнения данных
+@app.post("/populate_test_data")
+def populate_data(db: Session = Depends(get_db)):
+    populate_test_data(db)
+    return {"message": "Test data populated successfully"}
+
+
