@@ -15,6 +15,7 @@ from database.tag_to_pic_enrol import TagToPictureEnrollment
 from database.db import get_db
 from database.db import init_db
 from pydantic import BaseModel
+from tokens import aws_access_key, aws_secret_access
 import boto3
 import uvicorn
 import random
@@ -183,8 +184,8 @@ def get_top_pictures(user_id: int, db: Session = Depends(get_db)):
 s3_client = boto3.client(
     's3',
     endpoint_url='https://storage.yandexcloud.net',
-    aws_access_key_id='YCAJEwiniJk6C_9N9bJqI_v-c',
-    aws_secret_access_key='YCO8KK0Bn5Sf1_blUoVJh9pesRi9O2rDHzbziphU'
+    aws_access_key_id=aws_access_key(),
+    aws_secret_access_key=aws_secret_access()
 )
 
 bucket_name = 'memerest-pictures'
