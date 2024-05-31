@@ -21,3 +21,73 @@
   > В бесконечной ленте каждого пользователя должны отображаться картинки по индексу заинтересованности пользователя. Каждую неделю генерируется лента с подборкой самых популярных картинок, она доступна пользователю всю неделю и затем обновляется.
 - Доступ к приложения без интернет-соединения
   > Пользователь должен иметь доступ просматривать картинки в своих коллекциях даже в оффлайн-режиме.
+## Архитектура проекта
+### System Context Diagram
+![](https://github.com/Memerest/Backend/blob/main/system_context_diagram.png)
+### Container Diagram
+![](https://github.com/Memerest/Backend/blob/main/container_diagram.jpg)
+### Database scheme
+![](https://github.com/Memerest/Backend/blob/main/database_scheme.png)
+
+## Технологический стек
+- Frontend:
+    - Kotlin
+    - Retrofit
+    - Glide
+    - Android Jetpack
+- Backend:
+    - Python
+    - FastAPI
+    - SQLalchemy
+    - alembic
+    - pydantic
+    - Nginx
+- Tools for data storage, image storage and deployment application
+    - PostgreSQL 15
+    - Yandex S3 Object Storage
+    - Docker
+- VCS
+    - GitHub
+- Testing and documentation tools
+    - Postman
+    - SwaggerAPI
+
+## Начало работы
+### Требования
+- Nginx
+- Python 3.8+
+- Docker
+### Установка
+1. Клонируйте репозиторий
+```
+git clone https://github.com/Memerest/Backend.git
+cd Backend
+git checkout test_nginx
+```
+2.  Убедитесь, что Docker установлен на вашем компьютере
+```
+docker --version
+```
+3. Перейдите в директорию системы рекомендаций, создайте там файл **token.py** и поместите туда ваш ключ доступа и секретный ключ S3 Object Storage
+```
+cd ./RecSystem
+nano token.py
+
+def aws_access_key():
+    aws_access_key_id = '<your_aws_access_key_id>'
+    return aws_access_key_id
+def aws_secret_access():
+    aws_secret_access_key = '<your_aws_secret_access_key>'
+    return aws_secret_access_key
+```
+### Запуск
+1. Собираем наш проект
+```
+docker-compose build
+```
+2. И запускаем
+```
+docker-compose up
+```
+
+
