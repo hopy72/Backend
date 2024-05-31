@@ -51,6 +51,8 @@
 - Testing and documentation tools
     - Postman
     - SwaggerAPI
+    - pytest
+    - TestClient
 
 ## Начало работы
 ### Требования
