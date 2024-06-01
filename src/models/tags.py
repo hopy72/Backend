@@ -12,7 +12,7 @@ class Tag(Base):
     name = sa.Column(sa.String, comment="Имя тега", unique=True)
 
     pictures = relationship(
-        "TagToPictureEnrollment",
+        "Picture",
         secondary=TagToPictureEnrollment.__table__,
         back_populates="tags",
     )

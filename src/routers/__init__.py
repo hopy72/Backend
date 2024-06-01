@@ -1,40 +1,4 @@
-from dependencies.db import get_db
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from schemas import UserInSchema, UserSchema
-from models.users import User
-
-router = APIRouter()
-
-
-@router.get("/", response_model=UserSchema)
-async def create_user(
-        new_user: UserInSchema,
-        db: Session = Depends(get_db),  # db - Это сессия, которая подключилась к бдшке
-):
-    new_user_db = User(
-        username=new_user.username
-    )
-    # по сути весь не мой код начинается отсюда
-    db.add(new_user_db)
-    db.commit()
-    db.refresh(new_user_db)
-    # и заканчивается здесь
-    """
-    выше буквально три строчки примера работы с базой данных
-    есть два варианта как распределить ответственность:
-    1) разраб микросервиса пишет и свои функции, и оборачивает их в рест апи, чтобы принимать и отправлять данные
-    по http запросам. тогда надо только регламентировать, кто что отправляет/принимает, а весь микросервис обернуть
-    в докерный контейнер. в таком случае разрабы микросервиса:
-    -сами ищут фреймворки для работы с бд и апи
-    -не ограничены ни языком, ни чем-либо еще
-    2) разраб микросервиса пишет свои функции на питоновском коде, а потом я их вставляю в фастапи и сам разбираюсь
-    че куда и как отправлять по http. тогда все равно надо регламентировать, что нужно разрабу каждого микросервиса 
-    получать в запросах, но детальная структура запросов на мне. все это тоже оборачивается в контейнер, только этим уже
-    онли я занимаюсь. в таком случае разраб микросервиса:
-    -должен знать sqlalchemy для работы с бд в питоне, но всю апи часть я беру на себя
-    -ограничен языком питон
-    -(или их программа ничем не ограничена, при этом используется как отдельный процесс, который из питона вызывается. 
-    но это как-то по-дурацки)
-    """
-    return UserSchema.from_orm(new_user_db)
+from .users import router as user_router
+from .collections import router as collections_router
+from .pictures import router as pictures_router
+from .tags import router as tags_router
