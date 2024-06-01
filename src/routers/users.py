@@ -41,7 +41,7 @@ async def get_user_by_username(
     return UserSchema.from_orm(user)
 
 
-@router.get("/id/{id}", response_model=UserSchema)
+@router.get("/id/{user_id}", response_model=UserSchema)
 async def get_user_by_id(
         user_id: int,
         db: Session = Depends(get_db),
@@ -53,7 +53,7 @@ async def get_user_by_id(
 
 
 @router.put("/like", response_model=LikeSchema)
-async def like(
+async def toggle_like(
         new_like: LikeInSchema,
         db: Session = Depends(get_db),
 ):
