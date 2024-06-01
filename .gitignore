@@ -1,7 +1,7 @@
 /venv/
 /.idea/
-/src/example.db
-/src/alembic.ini
-/src/alembic/
-/src/pictures/
-/RecSystem/tokens.py
+/userActivity/example.db
+/userActivity/alembic.ini
+/userActivity/alembic/
+/userActivity/pictures/
+/recommendations/tokens.py
