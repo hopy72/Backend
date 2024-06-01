@@ -46,7 +46,7 @@ async def get_user_collections_by_username(
     return [CollectionSchema.from_orm(col) for col in collections]
 
 
-@router.get("/id/{id}", response_model=List[CollectionSchema])
+@router.get("/id/{user_id}", response_model=List[CollectionSchema])
 async def get_user_collections_by_id(
         user_id: int,
         db: Session = Depends(get_db),
