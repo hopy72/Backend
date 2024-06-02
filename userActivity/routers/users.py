@@ -17,12 +17,12 @@ async def create_user(
         new_user: UserInSchema,
         db: Session = Depends(get_db),
 ):
-    user = db.query(User).filter(User.username == new_user.username).first()
+    user = db.query(User).filter(User.email == new_user.email).first()
     if user:
         raise HTTPException(status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
                             detail="Пользователь с таким юзернеймом уже существует")
     new_user_db = User(
-        username=new_user.username
+        email=new_user.email
     )
     db.add(new_user_db)
     db.commit()
@@ -30,12 +30,12 @@ async def create_user(
     return UserSchema.from_orm(new_user_db)
 
 
-@router.get("/username/{username}", response_model=UserSchema)
-async def get_user_by_username(
-        username: str,
+@router.get("/email/{email}", response_model=UserSchema)
+async def get_user_by_email(
+        email: str,
         db: Session = Depends(get_db),
 ):
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользоваетль не найден")
     return UserSchema.from_orm(user)
