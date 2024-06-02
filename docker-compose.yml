@@ -3,7 +3,7 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./src
+      context: ./userActivity
       dockerfile: Dockerfile
     container_name: backend
     restart: always
@@ -16,7 +16,7 @@ services:
 
   auth:
     build:
-      context: ./artemProj/src
+      context: ./auth
       dockerfile: Dockerfile
     container_name: auth
     restart: always
@@ -29,7 +29,7 @@ services:
 
   recommendations:
     build:
-      context: ./RecSystem
+      context: ./recommendations
       dockerfile: Dockerfile
     container_name: recommendations
     restart: always

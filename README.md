@@ -33,8 +33,9 @@
 - Frontend:
     - Kotlin
     - Retrofit
-    - Glide
+    - Coil
     - Android Jetpack
+    - Jetpack Compose
 - Backend:
     - Python
     - FastAPI
