@@ -34,12 +34,12 @@ async def create_collection(
     return CollectionSchema.from_orm(new_collection_db)
 
 
-@router.get("/username/{username}", response_model=List[CollectionSchema])
-async def get_user_collections_by_username(
-        username: str,
+@router.get("/email/{email}", response_model=List[CollectionSchema])
+async def get_user_collections_by_email(
+        email: str,
         db: Session = Depends(get_db),
 ):
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользоваетль не найден")
     collections = db.query(Collection).filter(Collection.author_id == user.id).all()  # noqa
