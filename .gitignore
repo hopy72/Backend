@@ -4,4 +4,5 @@
 /userActivity/alembic.ini
 /userActivity/alembic/
 /userActivity/pictures/
+/userActivity/__pycache__/
 /recommendations/tokens.py

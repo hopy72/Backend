@@ -3,12 +3,12 @@ from pydantic import BaseModel
 
 
 class UserInSchema(BaseModel):
-    username: str
+    email: str
 
     class Config:
         json_schema_extra = {
             "example": {
-                "username": "Mister Twister",
+                "email": "mistertwister@mail.com",
             }
         }
 
@@ -17,14 +17,14 @@ class UserInSchema(BaseModel):
 
 class UserSchema(BaseModel):
     id: int
-    username: str
+    email: str
     collections: Optional[List[int]] = []
 
     class Config:
         json_schema_extra = {
             "example": {
                 "id": 123,
-                "username": "Mister Twister",
+                "email": "mistertwister@mail.com",
                 "collections": [1, 2, 3],
             }
         }
