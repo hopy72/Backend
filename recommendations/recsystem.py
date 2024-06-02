@@ -212,7 +212,7 @@ def populate_test_data(db: Session):
     # Создание пользователей
     users = []
     for i in range(1, 15):
-        user = User(username=f"user{i}")
+        user = User(email=f"user{i+5}@mail.ru")
         users.append(user)
     db.add_all(users)
     db.commit()
@@ -276,5 +276,3 @@ def populate_test_data(db: Session):
 def populate_data(db: Session = Depends(get_db)):
     populate_test_data(db)
     return {"message": "Test data populated successfully"}
-
-
