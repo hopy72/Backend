@@ -3,11 +3,13 @@ from pydantic import BaseModel
 
 
 class UserInSchema(BaseModel):
+    user_id: Optional[int] = None
     email: str
 
     class Config:
         json_schema_extra = {
             "example": {
+                "user_id": 123,
                 "email": "mistertwister@mail.com",
             }
         }

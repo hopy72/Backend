@@ -20,8 +20,15 @@ async def create_user(
     user = db.query(User).filter(User.email == new_user.email).first()
     if user:
         raise HTTPException(status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
-                            detail="Пользователь с таким юзернеймом уже существует")
+                            detail="Пользователь с таким email уже существует")
+    if new_user.user_id:
+        user = db.query(User).filter(User.id == new_user.user_id).first()
+        if user:
+            raise HTTPException(status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
+                                detail="Пользователь с таким id уже существует")
+
     new_user_db = User(
+        id=new_user.user_id if new_user.user_id else None,
         email=new_user.email
     )
     db.add(new_user_db)
