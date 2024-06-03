@@ -1,4 +1,5 @@
-from fastapi import Depends, FastAPI, HTTPException, status
+import httpx
+from fastapi import Depends, FastAPI, HTTPException, status, Request, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
@@ -140,9 +141,10 @@ async def refresh_access_token(refresh_token: str):
 
 
 @auth.post("/register/", response_model=User)
-async def register_user(user: User):
+async def register_user(user: User, request: Request):
     db = SessionLocal()
     if get_user_by_email(db, user.email):
+        db.close()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
     hashed_password = get_password_hash(user.password)
@@ -158,8 +160,24 @@ async def register_user(user: User):
         refresh_token=refresh_token
     )
 
-    added_user = add_user(db, email=user.email, hashed_password=hashed_password, refresh_token=refresh_token)
-    db.close()
+    try:
+        added_user = add_user(db, email=user.email, hashed_password=hashed_password, refresh_token=refresh_token)
+        db.commit()
+
+        try:
+            # Пытаемся добавить пользователя в backend через Nginx, передавая access token
+            await add_user_to_backend(added_user.id, new_user.email, access_token)
+        except httpx.HTTPStatusError as e:
+            await remove_user_from_auth(db, added_user.id)
+            raise HTTPException(status_code=e.response.status_code, detail=f"Failed to add user to backend: {e.response.text}")
+        except httpx.RequestError as e:
+            await remove_user_from_auth(db, added_user.id)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Connection error to backend: {str(e)}")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    finally:
+        db.close()
 
     response_body = {
         "email": new_user.email,
@@ -170,6 +188,23 @@ async def register_user(user: User):
     }
 
     return JSONResponse(content=response_body)
+
+
+async def add_user_to_backend(user_id: int, email: str, access_token: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://nginx/backend/users",  # URL через Nginx
+            json={"email": email},
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+        response.raise_for_status()
+
+
+async def remove_user_from_auth(db: Session, user_id: int):
+    user = db.query(UserInDB).filter(UserInDB.id == user_id).first()
+    if user:
+        db.delete(user)
+        db.commit()
 
 
 @auth.get("/validate")
