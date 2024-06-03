@@ -8,7 +8,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True, comment="Идентификатор пользователя", unique=True)
-    username = sa.Column(sa.String, comment="Имя пользователя", unique=True)
+    email = sa.Column(sa.String, comment="Email пользователя", unique=True)
 
     collections = relationship("Collection",
                                back_populates="author",
