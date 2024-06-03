@@ -1,12 +1,12 @@
 import httpx
-from fastapi import Depends, FastAPI, HTTPException, status, Request, BackgroundTasks
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import Depends, FastAPI, HTTPException, status, Request
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from starlette.responses import JSONResponse
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from .models import User, Token, TokenData, OAuth2EmailRequestForm
+from .models import User, Token, TokenData, OAuth2EmailRequestForm, RefreshTokenRequest
 from .database import SessionLocal, get_user_by_email, add_user, UserInDB
 
 SECRET_KEY = "83daa0256a2289b0fb23693bf1f6034d44396675749244721a2b20e896e11662"
@@ -119,22 +119,36 @@ async def login_for_access_token(form_data: OAuth2EmailRequestForm = Depends()):
 
 
 @auth.post("/token/refresh", response_model=Token)
-async def refresh_access_token(refresh_token: str):
+async def refresh_access_token(refresh_request: RefreshTokenRequest):
     try:
-        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(refresh_request.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
         db = SessionLocal()
         user = get_user(db, email=email)
-        if user is None or user.refresh_token != refresh_token:
+        if user is None or user.refresh_token != refresh_request.refresh_token:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
+        new_access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
+        refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        new_refresh_token = create_refresh_token(data={"sub": user.email}, expires_delta=refresh_token_expires)
+
+        user.refresh_token = new_refresh_token
+        db.add(user)
+        db.commit()
+        db.refresh(user)
         db.close()
-        return {"access_token": access_token, "token_type": "bearer", "id": user.id}
+
+        return {
+            "access_token": new_access_token,
+            "token_type": "bearer",
+            "refresh_token": new_refresh_token,
+            "id": user.id,
+            "email": user.email
+        }
     except JWTError as e:
         print(f"JWTError: {e}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
