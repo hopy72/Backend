@@ -15,6 +15,10 @@ class Token(BaseModel):
     email: str
 
 
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
 class TokenData(BaseModel):
     email: EmailStr or None = None
 
