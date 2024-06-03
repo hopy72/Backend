@@ -47,3 +47,4 @@ jinja2~=3.1.4
 MarkupSafe~=2.1.5
 itsdangerous~=2.2.0
 legacy~=0.1.7
+httpx
