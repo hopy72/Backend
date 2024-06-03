@@ -49,7 +49,7 @@ services:
       POSTGRES_PASSWORD: root
       POSTGRES_DB: backdb
     volumes:
-      - backdb_data:/var/lib/postgresql/data
+      - backdb11_data:/var/lib/postgresql/data
     networks:
       - app-network
 
@@ -62,7 +62,7 @@ services:
       POSTGRES_PASSWORD: root
       POSTGRES_DB: auth
     volumes:
-      - auth_data:/var/lib/postgresql/data
+      - auth11_data:/var/lib/postgresql/data
     networks:
       - app-network
 
@@ -81,8 +81,8 @@ services:
       - app-network
 
 volumes:
-  backdb_data:
-  auth_data:
+  backdb11_data:
+  auth11_data:
 
 networks:
   app-network:
