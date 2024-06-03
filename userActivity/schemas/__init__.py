@@ -18,7 +18,6 @@ class UserInSchema(BaseModel):
 class UserSchema(BaseModel):
     id: int
     email: str
-    collections: Optional[List[int]] = []
 
     class Config:
         json_schema_extra = {

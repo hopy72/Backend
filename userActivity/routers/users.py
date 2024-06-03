@@ -63,8 +63,7 @@ async def toggle_like(
     picture = db.query(Picture).filter(Picture.id == new_like.picture_id).first()
     if not picture:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Картинка не найдена")
-    old_like = db.query(Like)\
-        .filter(Like.user_id == new_like.user_id and Like.picture_id == new_like.picture_id).first()
+    old_like = db.query(Like).filter(Like.user_id == new_like.user_id, Like.picture_id == new_like.picture_id).first()
     if old_like:
         like_out = LikeSchema(user_id=old_like.user_id, picture_id=old_like.picture_id, is_liked=False)
         db.delete(old_like)
