@@ -178,14 +178,13 @@ async def register_user(user: User, request: Request):
         added_user = add_user(db, email=user.email, hashed_password=hashed_password, refresh_token=refresh_token)
         db.commit()
 
-        # Проверка совпадения ID в обеих базах данных
-        if added_user.id != new_user.id:
-            db.rollback()
-            db.close()
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="ID mismatch between databases")
-
         try:
-            await add_user_to_backend(added_user.id, new_user.email, access_token)
+            res = await add_user_to_backend(added_user.id, new_user.email, access_token)
+            print(res)
+            print(res.json())
+            if (res.json()['id'] != added_user.id):
+                raise HTTPException(status_code=res.status_code,
+                                    detail=f"gfgf {res.json()['id']}, {added_user.id}")
         except httpx.HTTPStatusError as e:
             await remove_user_from_auth(db, added_user.id)
             raise HTTPException(status_code=e.response.status_code, detail=f"Failed to add user to backend: {e.response.text}")
@@ -217,7 +216,8 @@ async def add_user_to_backend(user_id: int, email: str, access_token: str):
             json={"user_id": user_id, "email": email}
         )
 
-        response.raise_for_status()
+        # response.raise_for_status()
+        return response
 
 
 
