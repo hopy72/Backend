@@ -165,7 +165,7 @@ async def register_user(user: User, request: Request):
         db.commit()
 
         try:
-            # Пытаемся добавить пользователя в backend через Nginx, передавая access token
+            # Пытаемся добавить пользователя в backend через Nginx
             await add_user_to_backend(added_user.id, new_user.email, access_token)
         except httpx.HTTPStatusError as e:
             await remove_user_from_auth(db, added_user.id)
@@ -193,9 +193,9 @@ async def register_user(user: User, request: Request):
 async def add_user_to_backend(user_id: int, email: str, access_token: str):
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "http://nginx/backend/users",  # URL через Nginx
-            json={"email": email},
-            headers={"Authorization": f"Bearer {access_token}"}
+            "http://nginx/backend/users",
+            headers={"Authorization": f"Bearer {access_token}"},
+            json={"id": user_id, "email": email}
         )
         response.raise_for_status()
 
