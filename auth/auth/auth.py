@@ -178,8 +178,13 @@ async def register_user(user: User, request: Request):
         added_user = add_user(db, email=user.email, hashed_password=hashed_password, refresh_token=refresh_token)
         db.commit()
 
+        # Проверка совпадения ID в обеих базах данных
+        if added_user.id != new_user.id:
+            db.rollback()
+            db.close()
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="ID mismatch between databases")
+
         try:
-            # Пытаемся добавить пользователя в backend через Nginx
             await add_user_to_backend(added_user.id, new_user.email, access_token)
         except httpx.HTTPStatusError as e:
             await remove_user_from_auth(db, added_user.id)
@@ -209,9 +214,11 @@ async def add_user_to_backend(user_id: int, email: str, access_token: str):
         response = await client.post(
             "http://nginx/backend/users",
             headers={"Authorization": f"Bearer {access_token}"},
-            json={"id": user_id, "email": email}
+            json={"user_id": user_id, "email": email}
         )
+
         response.raise_for_status()
+
 
 
 async def remove_user_from_auth(db: Session, user_id: int):
